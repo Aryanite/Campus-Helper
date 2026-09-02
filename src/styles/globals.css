@@ -1,0 +1,555 @@
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-black: #000000;
+  --bg-surface: #0e0e11;
+  --bg-surface-elevated: #16161b;
+  --bg-glass: rgba(26, 26, 32, 0.65);
+  --bg-glass-hover: rgba(36, 36, 45, 0.75);
+  --bg-glass-active: rgba(255, 255, 255, 0.12);
+
+  --border-hairline: rgba(255, 255, 255, 0.07);
+  --border-focus: rgba(255, 255, 255, 0.25);
+
+  --text-primary: #f5f5f7;
+  --text-secondary: #86868b;
+  --text-muted: #515154;
+
+  --accent-apple: #2997ff;
+  --accent-emerald: #30d158;
+  --accent-rose: #ff453a;
+
+  --badge-green-bg: rgba(48, 209, 88, 0.12);
+  --badge-green-text: #30d158;
+  --badge-red-bg: rgba(255, 69, 58, 0.1);
+  --badge-red-text: #ff6961;
+
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-full: 9999px;
+
+  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Plus Jakarta Sans', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-black);
+  color: var(--text-primary);
+  line-height: 1.47;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+/* Phone-first container */
+.app-frame {
+  width: 100%;
+  max-width: 540px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 16px 18px 100px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.apple-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0 16px;
+}
+
+.brand-label-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.brand-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.header-action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.header-action-btn:active {
+  transform: scale(0.92);
+  background: var(--bg-glass-active);
+}
+
+/* Live Now Capsule */
+.live-capsule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.live-capsule:active {
+  transform: scale(0.98);
+}
+
+.live-capsule-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.live-pulsing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-emerald);
+  box-shadow: 0 0 10px rgba(48, 209, 88, 0.6);
+  animation: applePulse 2s infinite;
+}
+
+.live-pulsing-dot.idle {
+  background-color: var(--text-muted);
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes applePulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.live-capsule-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.live-capsule-sub {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.live-capsule-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent-apple);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Day selector: Smooth horizontal swipeable row */
+.day-scroll-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 14px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.day-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
+.day-chip {
+  flex: 0 0 auto;
+  padding: 7px 15px;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.day-chip.active {
+  background: var(--text-primary);
+  color: #000000;
+  border-color: transparent;
+  font-weight: 700;
+}
+
+.day-chip:active {
+  transform: scale(0.95);
+}
+
+/* Period Timeline Scroller */
+.period-scroll-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 18px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.period-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
+.period-pill {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  min-width: 76px;
+}
+
+.period-pill.active {
+  background: var(--bg-glass-active);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.period-pill:active {
+  transform: scale(0.95);
+}
+
+.period-pill-num {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.period-pill-time {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.period-pill.active .period-pill-time {
+  color: var(--text-primary);
+}
+
+.period-now-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+  margin-top: 3px;
+}
+
+/* Search Bar (Apple style) */
+.apple-search-wrapper {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.apple-search-input {
+  width: 100%;
+  padding: 10px 14px 10px 36px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.apple-search-input:focus {
+  border-color: var(--border-focus);
+  background: var(--bg-surface-elevated);
+}
+
+.apple-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Apple Segmented Control (Free vs All) */
+.segmented-control {
+  display: flex;
+  background: var(--bg-surface);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  border: 1px solid var(--border-hairline);
+  margin-bottom: 16px;
+}
+
+.segment-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+}
+
+.segment-btn.active {
+  background: var(--bg-glass-active);
+  color: var(--text-primary);
+}
+
+/* Summary Bar */
+.results-meta-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 4px 10px;
+}
+
+.results-headline {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.results-subline {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+/* Room List (Apple Table/Card style) */
+.apple-room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.apple-room-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.apple-room-row:active {
+  background: var(--bg-surface-elevated);
+}
+
+.apple-room-row.free-row {
+  border-left: 3px solid var(--accent-emerald);
+}
+
+.apple-room-row.occupied-row {
+  border-left: 3px solid rgba(255, 69, 58, 0.4);
+}
+
+.room-main-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.room-name-text {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.room-location-sub {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-lesson-sub {
+  font-size: 0.75rem;
+  color: #d1d5db;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.room-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.room-badge.free {
+  background: var(--badge-green-bg);
+  color: var(--badge-green-text);
+}
+
+.room-badge.occ {
+  background: var(--badge-red-bg);
+  color: var(--badge-red-text);
+}
+
+/* Bottom Navigation Bar (iOS Tab Bar) */
+.ios-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 540px;
+  margin: 0 auto;
+  background: rgba(14, 14, 17, 0.85);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-top: 1px solid var(--border-hairline);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0 20px;
+  z-index: 100;
+}
+
+.ios-tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.ios-tab-item.active {
+  color: var(--accent-apple);
+}
+
+.ios-tab-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* Empty State */
+.apple-empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+/* Minimal Timetable view */
+.class-select-apple {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  outline: none;
+}
+
+.schedule-card-apple {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.schedule-day-title {
+  padding: 10px 16px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.schedule-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-hairline);
+  font-size: 0.82rem;
+}
+
+.schedule-item-row:last-child {
+  border-bottom: none;
+}
+
+/* Diagnostics Minimal */
+.diag-row-apple {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-hairline);
+  font-size: 0.84rem;
+}
+
+.diag-row-apple:last-child {
+  border-bottom: none;
+}
+
+.diag-val-apple {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: -apple-system, monospace;
+}

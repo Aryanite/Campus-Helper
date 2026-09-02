@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+
+# Environment local overrides (never commit secrets)
+.env*.local
+.env.production
+.env.development
+
+# Debug and system logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.system_generated/
+
+# OS metadata
+.DS_Store
+Thumbs.db
