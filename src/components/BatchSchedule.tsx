@@ -19,46 +19,36 @@ export function BatchSchedule({ days, batchName, timetable, isLoading }: BatchSc
   if (!timetable) {
     return (
       <div className="empty-state">
-        <p>No timetable schedule available for batch <strong>{batchName}</strong>.</p>
+        No timetable for <strong>{batchName}</strong>.
       </div>
     );
   }
 
   return (
-    <div className="batch-schedule-container">
+    <div>
       {days.map((day) => {
         const items = timetable.scheduleByDay[day.index] || [];
-
         return (
-          <div key={day.id} className="batch-day-card">
-            <div className="batch-day-header">
-              <span>{day.name}</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                {items.length} {items.length === 1 ? 'class' : 'classes'}
-              </span>
-            </div>
+          <div key={day.id} className="schedule-day">
+            <div className="schedule-day-label">{day.name}</div>
 
             {items.length === 0 ? (
-              <div style={{ padding: '14px 16px', color: 'var(--text-muted)', fontSize: '12px' }}>
-                No scheduled academic lectures or labs.
-              </div>
+              <div className="schedule-empty-day">No classes</div>
             ) : (
-              <div>
-                {items.map((item, idx) => (
-                  <div key={idx} className="batch-item-row">
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span className="batch-subject-title">{item.subject}</span>
-                      <span className="batch-teacher-sub">
-                        Period {item.periodNumber} ({item.periodTime}) · {item.teachers.join(', ') || 'Faculty'}
-                      </span>
+              items.map((item, idx) => (
+                <div key={idx} className="schedule-row">
+                  <div className="schedule-period-num">{item.periodNumber}</div>
+                  <div className="schedule-info">
+                    <div className="schedule-subject">{item.subject}</div>
+                    <div className="schedule-teacher">
+                      {item.periodTime} · {item.teachers.join(', ') || '—'}
                     </div>
-
-                    <span className="batch-room-pill">
-                      {item.classrooms.join(', ') || 'TBD'}
-                    </span>
                   </div>
-                ))}
-              </div>
+                  <span className="schedule-room-chip">
+                    {item.classrooms.join(', ') || 'TBD'}
+                  </span>
+                </div>
+              ))
             )}
           </div>
         );

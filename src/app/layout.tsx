@@ -2,16 +2,11 @@ import type { Metadata } from 'next';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'CampusHelper | IILM University Schedule & Room Availability',
-  description:
-    'Real-time classroom availability finder and batch schedule manager for IILM University. Live period countdown, unoccupied room tracking, and student timetable views.',
+  title: 'CampusHelper — Free Rooms',
+  description: 'Find free classrooms at IILM University right now.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -19,7 +14,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Google+Sans+Text:wght@400;500&display=swap"
           rel="stylesheet"
         />
       </head>

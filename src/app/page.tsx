@@ -52,7 +52,7 @@ interface ApiResponseFreeRooms {
 }
 
 export default function CampusHelperPage() {
-  const [activeTab, setActiveTab] = useState<'rooms' | 'schedule' | 'diagnostics'>('rooms');
+  const [activeTab, setActiveTab] = useState<'rooms' | 'schedule'>('rooms');
 
   // Timetable core metadata
   const [days, setDays] = useState<Day[]>([]);
@@ -88,7 +88,7 @@ export default function CampusHelperPage() {
   // Legal Modal
   const [legalModalType, setLegalModalType] = useState<'terms' | 'privacy' | null>(null);
 
-  // 1. Initial Data Fetch
+  // 1. Initial Data Fetch & Auto-detection of Current Period
   useEffect(() => {
     async function init() {
       try {
@@ -126,8 +126,36 @@ export default function CampusHelperPage() {
             setSelectedDayIndex(nowRes.currentDay.index);
             setSelectedPeriodNum(nowRes.currentPeriod.number);
           } else {
-            setSelectedDayIndex(0);
-            setSelectedPeriodNum(1);
+            // Auto-detect based on current client date and time
+            const now = new Date();
+            const jsDay = now.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const timeStr = `${h}:${m}`;
+
+            if (jsDay >= 1 && jsDay <= 6) {
+              const dayIdx = jsDay - 1;
+              setSelectedDayIndex(dayIdx);
+
+              const pMatch = Array.isArray(periodsRes)
+                ? periodsRes.find((p: Period) => timeStr >= p.startTime && timeStr < p.endTime)
+                : null;
+
+              if (pMatch) {
+                setSelectedPeriodNum(pMatch.number);
+              } else if (timeStr < '09:00') {
+                setSelectedPeriodNum(1);
+              } else if (timeStr >= '17:15') {
+                setSelectedDayIndex(dayIdx < 5 ? dayIdx + 1 : 0);
+                setSelectedPeriodNum(1);
+              } else {
+                setSelectedPeriodNum(1);
+              }
+            } else {
+              // Sunday -> default to Monday Period 1
+              setSelectedDayIndex(0);
+              setSelectedPeriodNum(1);
+            }
           }
         }
       } catch (err) {
@@ -274,8 +302,21 @@ export default function CampusHelperPage() {
   const activePeriod = periods.find((p) => p.number === selectedPeriodNum);
   const activeBatch = classes.find((c) => c.id === preferredBatchId);
 
+  // Selected batch's class at the currently selected day & period
+  const selectedBatchClass = useMemo(() => {
+    if (!classTimetable?.scheduleByDay) return null;
+    const dayClasses = classTimetable.scheduleByDay[selectedDayIndex] || [];
+    return dayClasses.find((item) => item.periodNumber === selectedPeriodNum) || null;
+  }, [classTimetable, selectedDayIndex, selectedPeriodNum]);
+
+  const isViewingLive = Boolean(
+    currentStatus?.hasActivePeriod &&
+    currentStatus.currentDay?.index === selectedDayIndex &&
+    currentStatus.currentPeriod?.number === selectedPeriodNum
+  );
+
   return (
-    <div className="app-container">
+    <div className="app-shell">
       {/* 1. Top Command Bar */}
       <CommandHeader
         institution={metadata?.institution || 'IILM University'}
@@ -287,48 +328,44 @@ export default function CampusHelperPage() {
         isRefreshing={isRefreshing}
       />
 
-      {/* 2. Live Pulse Strip (Flighty Style) */}
-      <LivePulseStrip
-        currentStatus={currentStatus}
-        onJumpToNow={handleJumpToNow}
-        freeCountNow={currentStatus?.hasActivePeriod ? availability?.freeCount : undefined}
-      />
-
-      {/* 3. Navigation Tabs */}
-      <nav className="view-nav-tabs" role="tablist" aria-label="Campus views">
+      {/* 2. Navigation Tabs */}
+      <nav className="tab-bar" role="tablist" aria-label="Campus views">
         <button
           id="tab-btn-rooms"
-          className={`nav-tab-btn ${activeTab === 'rooms' ? 'active' : ''}`}
+          className={`tab-btn ${activeTab === 'rooms' ? 'active' : ''}`}
           onClick={() => setActiveTab('rooms')}
           role="tab"
           aria-selected={activeTab === 'rooms'}
         >
-          Classroom Availability
+          Free Classrooms
         </button>
         <button
           id="tab-btn-schedule"
-          className={`nav-tab-btn ${activeTab === 'schedule' ? 'active' : ''}`}
+          className={`tab-btn ${activeTab === 'schedule' ? 'active' : ''}`}
           onClick={() => setActiveTab('schedule')}
           role="tab"
           aria-selected={activeTab === 'schedule'}
         >
           Batch Schedule {activeBatch ? `(${activeBatch.name})` : ''}
         </button>
-        <button
-          id="tab-btn-diagnostics"
-          className={`nav-tab-btn ${activeTab === 'diagnostics' ? 'active' : ''}`}
-          onClick={() => setActiveTab('diagnostics')}
-          role="tab"
-          aria-selected={activeTab === 'diagnostics'}
-        >
-          System & Data
-        </button>
       </nav>
+
+      {/* 3. Live Status & Current Batch Class Hero */}
+      <LivePulseStrip
+        currentStatus={currentStatus}
+        selectedDayName={activeDay?.name || 'Today'}
+        selectedPeriod={activePeriod}
+        batchName={activeBatch?.name || '2CSE13'}
+        batchClass={selectedBatchClass}
+        isViewingLive={isViewingLive}
+        onJumpToNow={handleJumpToNow}
+        freeCount={availability?.freeCount}
+      />
 
       {/* TAB 1: CLASSROOM AVAILABILITY */}
       {activeTab === 'rooms' && (
-        <main style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* Controls Bar */}
+        <main>
+          {/* Controls Bar: Time picker + Search */}
           <FilterBar
             days={days}
             periods={periods}
@@ -338,6 +375,8 @@ export default function CampusHelperPage() {
             onSelectPeriod={setSelectedPeriodNum}
             currentPeriodNum={currentStatus?.hasActivePeriod ? currentStatus.currentPeriod?.number : undefined}
             currentDayIndex={currentStatus?.hasActivePeriod ? currentStatus.currentDay?.index : undefined}
+            isLive={Boolean(currentStatus?.hasActivePeriod)}
+            onJumpToNow={handleJumpToNow}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             buildingFilter={buildingFilter}
@@ -348,39 +387,19 @@ export default function CampusHelperPage() {
             totalCount={availability?.totalClassrooms ?? 0}
           />
 
-          {/* Results Summary Meta */}
-          <div className="results-meta">
-            <div>
-              Showing <span className="results-count-strong">{roomRows.length}</span>{' '}
-              {viewMode === 'free' ? 'available classrooms' : 'total classrooms'}{' '}
-              for <span className="results-count-strong">{activeDay?.name}</span>,{' '}
-              <span className="results-count-strong">Period {activePeriod?.number}</span>{' '}
-              ({activePeriod?.startTime} - {activePeriod?.endTime})
-            </div>
-            {buildingFilter !== 'all' && (
-              <span style={{ color: 'var(--text-muted)' }}>
-                Filter: {buildingFilter}
-              </span>
-            )}
-          </div>
-
           {/* Room Listings or Skeleton */}
           {loadingRooms ? (
             <SkeletonLoader count={8} />
           ) : roomRows.length > 0 ? (
-            <div className="room-grid">
+            <div className="room-list">
               {roomRows.map((room) => (
                 <RoomRow key={room.id} room={room} />
               ))}
             </div>
           ) : (
             <div className="empty-state">
-              <p style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                No classrooms matched your filter criteria.
-              </p>
-              <p style={{ fontSize: '12px' }}>
-                Try clearing the search query or selecting "All Rooms".
-              </p>
+              No classrooms matched your search criteria.
+              <p>Try clearing your search query or selecting "All" rooms.</p>
             </div>
           )}
         </main>
@@ -401,56 +420,6 @@ export default function CampusHelperPage() {
             timetable={classTimetable}
             isLoading={loadingBatchSchedule}
           />
-        </main>
-      )}
-
-      {/* TAB 3: SYSTEM & DATA INTEGRITY */}
-      {activeTab === 'diagnostics' && (
-        <main>
-          <div className="info-grid">
-            <div className="info-stat-card">
-              <span className="info-stat-label">Institution</span>
-              <span className="info-stat-value">{metadata?.institution}</span>
-            </div>
-            <div className="info-stat-card">
-              <span className="info-stat-label">Academic Department</span>
-              <span className="info-stat-value" style={{ fontSize: '13px' }}>
-                {metadata?.schoolName}
-              </span>
-            </div>
-            <div className="info-stat-card">
-              <span className="info-stat-label">Timetable Validity</span>
-              <span className="info-stat-value">{metadata?.validity}</span>
-            </div>
-            <div className="info-stat-card">
-              <span className="info-stat-label">Physical Classrooms Tracked</span>
-              <span className="info-stat-value">{diagnostics?.classroomsCount ?? 85}</span>
-            </div>
-            <div className="info-stat-card">
-              <span className="info-stat-label">Student Sections / Batches</span>
-              <span className="info-stat-value">{diagnostics?.classesCount ?? 137}</span>
-            </div>
-            <div className="info-stat-card">
-              <span className="info-stat-label">Curriculum Lessons</span>
-              <span className="info-stat-value">{diagnostics?.lessonsCount ?? 1298}</span>
-            </div>
-            <div className="info-stat-card">
-              <span className="info-stat-label">Timetable Placements (Cards)</span>
-              <span className="info-stat-value">{diagnostics?.placedCardsCount ?? 2773}</span>
-            </div>
-            <div className="info-stat-card">
-              <span className="info-stat-label">Unresolved Integrity Errors</span>
-              <span className="info-stat-value" style={{ color: 'var(--status-available-text)' }}>
-                0 (100% Relational Integrity)
-              </span>
-            </div>
-            <div className="info-stat-card">
-              <span className="info-stat-label">Last Synchronization</span>
-              <span className="info-stat-value" style={{ fontSize: '13px' }}>
-                {metadata?.lastUpdated || 'Live Sync'}
-              </span>
-            </div>
-          </div>
         </main>
       )}
 
@@ -475,7 +444,7 @@ export default function CampusHelperPage() {
         </div>
       </footer>
 
-      {/* Accessible Terms & Privacy Modal (Rules 26 and 27) */}
+      {/* Accessible Terms & Privacy Modal */}
       <LegalModal
         type={legalModalType}
         onClose={() => setLegalModalType(null)}

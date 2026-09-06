@@ -1,15 +1,29 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CurrentStatusResult, Period, Day } from '@/lib/types';
+import { CurrentStatusResult, Period, ClassScheduleItem } from '@/lib/types';
 
 interface LivePulseStripProps {
   currentStatus: CurrentStatusResult | null;
+  selectedDayName: string;
+  selectedPeriod?: Period;
+  batchName: string;
+  batchClass?: ClassScheduleItem | null;
+  isViewingLive: boolean;
   onJumpToNow: () => void;
-  freeCountNow?: number;
+  freeCount?: number;
 }
 
-export function LivePulseStrip({ currentStatus, onJumpToNow, freeCountNow }: LivePulseStripProps) {
+export function LivePulseStrip({
+  currentStatus,
+  selectedDayName,
+  selectedPeriod,
+  batchName,
+  batchClass,
+  isViewingLive,
+  onJumpToNow,
+  freeCount,
+}: LivePulseStripProps) {
   const [minutesRemaining, setMinutesRemaining] = useState<number | null>(null);
 
   useEffect(() => {
@@ -32,55 +46,88 @@ export function LivePulseStrip({ currentStatus, onJumpToNow, freeCountNow }: Liv
     return () => clearInterval(interval);
   }, [currentStatus]);
 
-  const isActive = currentStatus?.hasActivePeriod && currentStatus.currentPeriod;
+  const hasLivePeriod = Boolean(currentStatus?.hasActivePeriod && currentStatus.currentPeriod);
 
   return (
-    <div className="live-pulse-strip">
-      <div className="live-pulse-left">
-        <span className={`pulse-indicator ${isActive ? '' : 'idle'}`} aria-hidden="true" />
-        <div className="pulse-info">
-          <div className="pulse-title">
-            {isActive ? (
-              <>
-                <span>
-                  {currentStatus.currentDay?.name} · Period {currentStatus.currentPeriod?.number}
-                </span>
-                {minutesRemaining !== null && (
-                  <span className="pulse-countdown-badge">
-                    {minutesRemaining}m remaining
-                  </span>
-                )}
-              </>
-            ) : (
-              <span>Outside Academic Timetable Hours</span>
-            )}
-          </div>
-          <div className="pulse-sub">
-            {isActive ? (
-              <>
-                Active window: {currentStatus.currentPeriod?.startTime} - {currentStatus.currentPeriod?.endTime}
-                {freeCountNow !== undefined ? ` · ${freeCountNow} classrooms free` : ''}
-              </>
-            ) : (
-              <span>Academic schedule runs Monday - Saturday, 09:00 - 17:15</span>
-            )}
-          </div>
+    <div className="live-hero-card">
+      {/* Top row: Status header */}
+      <div className="hero-status-row">
+        <div className="hero-status-left">
+          {isViewingLive ? (
+            <span className="hero-badge badge-live">
+              <span className="live-dot" /> LIVE NOW
+            </span>
+          ) : hasLivePeriod ? (
+            <span className="hero-badge badge-future">
+              📅 SCHEDULED
+            </span>
+          ) : (
+            <span className="hero-badge badge-closed">
+              🌙 CAMPUS CLOSED
+            </span>
+          )}
+
+          <span className="hero-time-text">
+            <strong>{selectedDayName}</strong> · Period {selectedPeriod?.number ?? 1}{' '}
+            ({selectedPeriod?.startTime ?? '09:00'}–{selectedPeriod?.endTime ?? '09:55'})
+          </span>
+
+          {isViewingLive && minutesRemaining !== null && (
+            <span className="hero-countdown-chip">
+              {minutesRemaining}m left
+            </span>
+          )}
+        </div>
+
+        <div className="hero-status-right">
+          {freeCount !== undefined && (
+            <span className="hero-free-count">
+              <strong>{freeCount}</strong> rooms free
+            </span>
+          )}
+
+          {!isViewingLive && hasLivePeriod && (
+            <button
+              id="jump-to-now-hero-btn"
+              className="btn-jump-pill"
+              onClick={onJumpToNow}
+              title="Return to currently active class period"
+            >
+              ⚡ Live Now
+            </button>
+          )}
         </div>
       </div>
 
-      {isActive && (
-        <button
-          id="jump-to-now-btn"
-          className="btn-jump-now"
-          onClick={onJumpToNow}
-          title="Jump to current day and period"
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-          Jump to Now
-        </button>
-      )}
+      {/* Bottom row: Batch's class status at this period */}
+      <div className="hero-batch-row">
+        <div className="hero-batch-badge">
+          🎓 {batchName || 'Your Batch'}
+        </div>
+
+        <div className="hero-batch-content">
+          {batchClass ? (
+            <div className="batch-class-info">
+              <span className="batch-subject">{batchClass.subject}</span>
+              <span className="batch-room-tag">
+                {batchClass.classrooms.join(', ') || 'Room Assigned'}
+              </span>
+              {batchClass.teachers.length > 0 && (
+                <span className="batch-teacher">
+                  · {batchClass.teachers.join(', ')}
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="batch-free-info">
+              <span className="free-sparkle">✨</span>
+              <span className="free-text">
+                <strong>Free Period</strong> for {batchName || 'this batch'} — no classes scheduled!
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

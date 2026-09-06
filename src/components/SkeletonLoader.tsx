@@ -6,20 +6,20 @@ interface SkeletonLoaderProps {
   count?: number;
 }
 
-export function SkeletonLoader({ count = 6 }: SkeletonLoaderProps) {
+export function SkeletonLoader({ count = 8 }: SkeletonLoaderProps) {
   return (
-    <div className="room-grid" aria-busy="true" aria-label="Loading classrooms">
+    <div className="skeleton-list" aria-busy="true" aria-label="Loading classrooms">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="skeleton-card">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '140px' }}>
-            <div className="skeleton-block" style={{ width: '80px', height: '18px' }} />
-            <div className="skeleton-block" style={{ width: '120px', height: '12px' }} />
+        <div key={i} className="skeleton-item">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '120px' }}>
+            <div className="skel" style={{ width: '80px', height: '16px' }} />
+            <div className="skel" style={{ width: '100px', height: '12px' }} />
           </div>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div className="skeleton-block" style={{ width: '60%', height: '14px' }} />
-            <div className="skeleton-block" style={{ width: '40%', height: '12px' }} />
+            <div className="skel" style={{ width: '55%', height: '14px' }} />
+            <div className="skel" style={{ width: '35%', height: '12px' }} />
           </div>
-          <div className="skeleton-block" style={{ width: '70px', height: '22px', borderRadius: '6px' }} />
+          <div className="skel" style={{ width: '52px', height: '24px', borderRadius: '100px' }} />
         </div>
       ))}
     </div>
@@ -28,16 +28,22 @@ export function SkeletonLoader({ count = 6 }: SkeletonLoaderProps) {
 
 export function TimetableSkeleton() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }} aria-busy="true">
+    <div aria-busy="true">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="batch-day-card">
-          <div className="batch-day-header">
-            <div className="skeleton-block" style={{ width: '100px', height: '16px' }} />
+        <div key={i} className="schedule-day">
+          <div className="schedule-day-label">
+            <div className="skel" style={{ width: '80px', height: '12px' }} />
           </div>
-          <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div className="skeleton-block" style={{ width: '80%', height: '16px' }} />
-            <div className="skeleton-block" style={{ width: '60%', height: '14px' }} />
-          </div>
+          {Array.from({ length: 4 }).map((_, j) => (
+            <div key={j} className="schedule-row">
+              <div className="skel" style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div className="skel" style={{ width: '60%', height: '14px' }} />
+                <div className="skel" style={{ width: '40%', height: '12px' }} />
+              </div>
+              <div className="skel" style={{ width: '60px', height: '24px', borderRadius: '100px' }} />
+            </div>
+          ))}
         </div>
       ))}
     </div>
