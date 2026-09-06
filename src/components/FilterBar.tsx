@@ -20,8 +20,6 @@ interface FilterBarProps {
   onViewModeChange: (mode: 'free' | 'all') => void;
   freeCount: number;
   totalCount: number;
-  buildingFilter?: string;
-  onBuildingChange?: (building: string) => void;
 }
 
 export function FilterBar({
@@ -48,7 +46,7 @@ export function FilterBar({
     <div className="filter-panel">
       {/* 1. Time Selector Bar (Day & Period) */}
       <div className="time-selector-bar">
-        <div className="time-select-wrap">
+        <div className="time-select-wrap day-wrap">
           <label htmlFor="day-select" className="time-select-label">Day</label>
           <div className="select-container">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="select-prefix-icon">
@@ -76,7 +74,7 @@ export function FilterBar({
           </div>
         </div>
 
-        <div className="time-select-wrap">
+        <div className="time-select-wrap period-wrap">
           <label htmlFor="period-select" className="time-select-label">Period</label>
           <div className="select-container">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="select-prefix-icon">
@@ -117,7 +115,7 @@ export function FilterBar({
         )}
       </div>
 
-      {/* 2. Search & Toggle Bar */}
+      {/* 2. Search & Toggle Bar (Building search removed) */}
       <div className="search-row">
         <div className="search-bar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -127,7 +125,7 @@ export function FilterBar({
           <input
             id="room-search"
             type="text"
-            placeholder="Search room, building, subject, teacher..."
+            placeholder="Search room, subject, teacher..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             aria-label="Search rooms"

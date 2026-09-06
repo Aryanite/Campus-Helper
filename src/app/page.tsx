@@ -65,7 +65,6 @@ export default function CampusHelperPage() {
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
   const [selectedPeriodNum, setSelectedPeriodNum] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [buildingFilter, setBuildingFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'free' | 'all'>('free');
 
   // Preferred Batch State (Persisted in localStorage)
@@ -166,13 +165,11 @@ export default function CampusHelperPage() {
     init();
   }, []);
 
-  // 2. Fetch Room Availability whenever Day, Period, or Building filter changes
+  // 2. Fetch Room Availability whenever Day or Period changes
   const fetchAvailability = useCallback(async () => {
     setLoadingRooms(true);
     try {
-      const url = `/api/free-rooms?day=${selectedDayIndex}&period=${selectedPeriodNum}${
-        buildingFilter !== 'all' ? `&building=${encodeURIComponent(buildingFilter)}` : ''
-      }`;
+      const url = `/api/free-rooms?day=${selectedDayIndex}&period=${selectedPeriodNum}`;
       const res = await fetch(url);
       const data = await res.json();
       setAvailability(data);
@@ -182,7 +179,7 @@ export default function CampusHelperPage() {
     } finally {
       setLoadingRooms(false);
     }
-  }, [selectedDayIndex, selectedPeriodNum, buildingFilter]);
+  }, [selectedDayIndex, selectedPeriodNum]);
 
   useEffect(() => {
     if (days.length > 0 && periods.length > 0) {
@@ -289,12 +286,11 @@ export default function CampusHelperPage() {
 
     return combined.filter((r) => {
       const matchName = r.name.toLowerCase().includes(query);
-      const matchBuilding = r.building.toLowerCase().includes(query);
       const matchSubject = r.occupant?.subject?.toLowerCase().includes(query) || false;
       const matchTeacher = r.occupant?.teacher?.toLowerCase().includes(query) || false;
       const matchClass = r.occupant?.class?.toLowerCase().includes(query) || false;
 
-      return matchName || matchBuilding || matchSubject || matchTeacher || matchClass;
+      return matchName || matchSubject || matchTeacher || matchClass;
     });
   }, [availability, viewMode, searchQuery]);
 
@@ -324,8 +320,6 @@ export default function CampusHelperPage() {
         classes={classes}
         selectedBatchId={preferredBatchId}
         onSelectBatch={handleSelectBatch}
-        onRefresh={handleRefresh}
-        isRefreshing={isRefreshing}
       />
 
       {/* 2. Navigation Tabs */}
@@ -379,8 +373,6 @@ export default function CampusHelperPage() {
             onJumpToNow={handleJumpToNow}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            buildingFilter={buildingFilter}
-            onBuildingChange={setBuildingFilter}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             freeCount={availability?.freeCount ?? 0}
