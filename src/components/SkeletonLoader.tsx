@@ -11,15 +11,11 @@ export function SkeletonLoader({ count = 8 }: SkeletonLoaderProps) {
     <div className="skeleton-list" aria-busy="true" aria-label="Loading classrooms">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="skeleton-item">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '120px' }}>
-            <div className="skel" style={{ width: '80px', height: '16px' }} />
-            <div className="skel" style={{ width: '100px', height: '12px' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="skel" style={{ width: '72px', height: '16px', borderRadius: '4px' }} />
+            <div className="skel" style={{ width: '96px', height: '18px', borderRadius: '4px' }} />
           </div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div className="skel" style={{ width: '55%', height: '14px' }} />
-            <div className="skel" style={{ width: '35%', height: '12px' }} />
-          </div>
-          <div className="skel" style={{ width: '52px', height: '24px', borderRadius: '100px' }} />
+          <div className="skel" style={{ width: '56px', height: '22px', borderRadius: '100px' }} />
         </div>
       ))}
     </div>
