@@ -40,12 +40,16 @@ function saveCacheToDisk(data: RawEduPageResponse) {
   }
 }
 
-function loadDiskCache(): RawEduPageResponse | null {
+function loadDiskCache(): { data: RawEduPageResponse; timestamp: number } | null {
   try {
     const filePath = path.join(process.cwd(), 'data', 'live-cache.json');
     if (fs.existsSync(filePath)) {
+      const stats = fs.statSync(filePath);
       const raw = fs.readFileSync(filePath, 'utf-8');
-      return JSON.parse(raw) as RawEduPageResponse;
+      return {
+        data: JSON.parse(raw) as RawEduPageResponse,
+        timestamp: stats.mtimeMs,
+      };
     }
   } catch (err) {
     console.error('Error reading disk cache:', err);
@@ -53,18 +57,34 @@ function loadDiskCache(): RawEduPageResponse | null {
   return null;
 }
 
-export async function fetchTimetable(forceRefresh = false): Promise<{ data: RawEduPageResponse; isFallback: boolean; timestamp: number }> {
-  const now = Date.now();
-
-  // Return cached data if valid and not forcing refresh
-  if (!forceRefresh && memoryCache && (now - memoryCache.timestamp < CACHE_TTL_MS)) {
-    return {
-      data: memoryCache.data,
-      isFallback: memoryCache.isFallback,
-      timestamp: memoryCache.timestamp,
+function initMemoryCacheFromDisk(): void {
+  const disk = loadDiskCache();
+  if (disk) {
+    memoryCache = {
+      data: disk.data,
+      timestamp: disk.timestamp,
+      isFallback: false,
     };
+    return;
   }
 
+  try {
+    const fallback = loadFallbackData();
+    memoryCache = {
+      data: fallback,
+      timestamp: Date.now(),
+      isFallback: true,
+    };
+  } catch (err) {
+    console.error('Failed to initialize fallback timetable cache:', err);
+  }
+}
+
+// In-flight promise deduplication to prevent concurrent fetches to EduPage
+let inflightFetch: Promise<{ data: RawEduPageResponse; isFallback: boolean; timestamp: number }> | null = null;
+
+async function doLiveFetch(): Promise<{ data: RawEduPageResponse; isFallback: boolean; timestamp: number }> {
+  const now = Date.now();
   try {
     // 1. Obtain anonymous session cookie from EduPage
     const getRes = await fetch(`${BASE_URL}/timetable/`, {
@@ -125,19 +145,83 @@ export async function fetchTimetable(forceRefresh = false): Promise<{ data: RawE
     console.warn('EduPage live fetch failed, falling back to cached snapshot:', (error as Error).message);
 
     // Try disk cache first, then fallback file
-    const disk = loadDiskCache();
-    const fallback = disk || loadFallbackData();
+    if (!memoryCache) {
+      initMemoryCacheFromDisk();
+    }
 
+    if (memoryCache) {
+      return {
+        data: memoryCache.data,
+        isFallback: true,
+        timestamp: memoryCache.timestamp,
+      };
+    }
+
+    const fallback = loadFallbackData();
     memoryCache = {
       data: fallback,
-      timestamp: memoryCache ? memoryCache.timestamp : now,
+      timestamp: now,
       isFallback: true,
     };
 
     return {
       data: fallback,
       isFallback: true,
+      timestamp: now,
+    };
+  }
+}
+
+// Cooldown tracking to protect EduPage server from being hit too frequently
+let lastFetchAttempt = 0;
+const MIN_FETCH_COOLDOWN_MS = 5 * 60 * 1000; // 5 minute cooldown between live network attempts
+
+function getOrStartInflightFetch(): Promise<{ data: RawEduPageResponse; isFallback: boolean; timestamp: number }> {
+  if (inflightFetch) {
+    return inflightFetch;
+  }
+
+  lastFetchAttempt = Date.now();
+  inflightFetch = doLiveFetch().finally(() => {
+    inflightFetch = null;
+  });
+
+  return inflightFetch;
+}
+
+export async function fetchTimetable(forceRefresh = false): Promise<{ data: RawEduPageResponse; isFallback: boolean; timestamp: number }> {
+  const now = Date.now();
+
+  // Initialize memory cache immediately from disk or fallback on first call
+  if (!memoryCache) {
+    initMemoryCacheFromDisk();
+  }
+
+  // If forceRefresh requested, execute deduplicated live network fetch
+  if (forceRefresh) {
+    return getOrStartInflightFetch();
+  }
+
+  // If cached data is available
+  if (memoryCache) {
+    const isExpired = now - memoryCache.timestamp >= CACHE_TTL_MS;
+    const canAttemptBackgroundFetch = now - lastFetchAttempt >= MIN_FETCH_COOLDOWN_MS;
+
+    if (isExpired && canAttemptBackgroundFetch && !inflightFetch) {
+      // Trigger safe non-blocking background revalidation with cooldown
+      getOrStartInflightFetch().catch((err) => {
+        console.warn('Background timetable revalidation failed:', (err as Error).message);
+      });
+    }
+
+    // Return instant cached data without blocking the user
+    return {
+      data: memoryCache.data,
+      isFallback: memoryCache.isFallback,
       timestamp: memoryCache.timestamp,
     };
   }
+
+  // Fallback if cache could not be initialized from disk
+  return getOrStartInflightFetch();
 }

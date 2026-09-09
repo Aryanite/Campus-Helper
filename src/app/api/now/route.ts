@@ -12,7 +12,11 @@ export async function GET(req: NextRequest) {
     const timetable = await getTimetableService();
     const result = getCurrentAvailability(timetable, refDate);
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, max-age=15, stale-while-revalidate=60',
+      },
+    });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }

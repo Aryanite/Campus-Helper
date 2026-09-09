@@ -11,6 +11,10 @@ export async function GET() {
       classroomsCount: service.classrooms.length,
       classesCount: service.classes.length,
       diagnostics: service.diagnostics,
+    }, {
+      headers: {
+        'Cache-Control': 'public, max-age=120, stale-while-revalidate=600',
+      },
     });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });

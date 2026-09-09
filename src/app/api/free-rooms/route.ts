@@ -73,6 +73,10 @@ export async function GET(req: NextRequest) {
         duration: r.details[0]?.duration,
       })),
       metadata: availability.metadata,
+    }, {
+      headers: {
+        'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+      },
     });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });

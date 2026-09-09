@@ -155,3 +155,51 @@ export interface TimetableDiagnostics {
   lastUpdated: string;
   isFallback: boolean;
 }
+
+export interface ApiResponseFreeRooms {
+  day: string;
+  dayIndex: number;
+  period: {
+    number: number;
+    name: string;
+    start: string;
+    end: string;
+  };
+  totalClassrooms: number;
+  freeCount: number;
+  occupiedCount: number;
+  freeRooms: {
+    id: string;
+    name: string;
+    short: string;
+    building: string;
+  }[];
+  occupiedRooms: {
+    id: string;
+    name: string;
+    short: string;
+    building: string;
+    class: string;
+    subject: string;
+    subjectShort: string;
+    teacher: string;
+    startPeriod?: number;
+    duration?: number;
+  }[];
+  metadata: TimetableMetadata;
+}
+
+export interface BootstrapData {
+  days: Day[];
+  periods: Period[];
+  classes: SchoolClass[];
+  metadata: TimetableMetadata;
+  diagnostics: TimetableDiagnostics;
+  currentStatus: CurrentStatusResult;
+  initialDayIndex: number;
+  initialPeriodNum: number;
+  initialAvailability: ApiResponseFreeRooms;
+  initialBatchId: string;
+  initialClassTimetable: ClassTimetableResult | null;
+}
+

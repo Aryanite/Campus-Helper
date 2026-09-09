@@ -26,7 +26,11 @@ export async function GET(req: NextRequest) {
     }
 
     const result = getClassTimetable(timetable, targetClass.id);
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, max-age=120, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
